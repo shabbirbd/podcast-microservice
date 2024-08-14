@@ -313,11 +313,14 @@ app.post('/createPodcast', (req, res) => __awaiter(void 0, void 0, void 0, funct
         }
         ;
         // Step 5: Update the podcast
-        const newpodcast = Object.assign(Object.assign({}, currentPodcast), { active: true });
-        console.log(newpodcast, "new podcast.....");
-        const updatedpodcast = yield updatepodcast(currentPodcast._id, newpodcast);
+        // const newpodcast = {
+        //   ...currentPodcast,
+        //   active: true
+        // };
+        // console.log(newpodcast, "new podcast.....")
+        // const updatedpodcast = await updatepodcast(currentPodcast._id, newpodcast)
         console.log("It was a successfull run... Exiting...");
-        res.status(200).json({ updatedpodcast });
+        res.status(200).json({ voiceResults });
     }
     catch (error) {
         console.error('Error processing request:', error.message);
@@ -326,6 +329,6 @@ app.post('/createPodcast', (req, res) => __awaiter(void 0, void 0, void 0, funct
 }));
 const PORT = 5003;
 app.listen(PORT, '0.0.0.0', () => {
-    console.log(`HeyGen video creation running on ${PORT}`);
+    console.log(`Podcast creation running on ${PORT}`);
 });
 exports.default = app;

@@ -324,16 +324,16 @@ app.post('/createPodcast', async (req, res) => {
 
 
     // Step 5: Update the podcast
-    const newpodcast = {
-      ...currentPodcast,
+    // const newpodcast = {
+    //   ...currentPodcast,
 
-      active: true
-    };
-    console.log(newpodcast, "new podcast.....")
-    const updatedpodcast = await updatepodcast(currentPodcast._id, newpodcast)
+    //   active: true
+    // };
+    // console.log(newpodcast, "new podcast.....")
+    // const updatedpodcast = await updatepodcast(currentPodcast._id, newpodcast)
 
     console.log("It was a successfull run... Exiting...")
-    res.status(200).json({updatedpodcast});
+    res.status(200).json({voiceResults});
 
   } catch (error: any) {
     console.error('Error processing request:', error.message);
@@ -344,7 +344,7 @@ app.post('/createPodcast', async (req, res) => {
 const PORT = 5003;
 
 app.listen(PORT, '0.0.0.0', () => {
-  console.log(`HeyGen video creation running on ${PORT}`);
+  console.log(`Podcast creation running on ${PORT}`);
 });
 
 export default app;
