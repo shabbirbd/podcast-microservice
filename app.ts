@@ -145,6 +145,7 @@ const extractAndSaveAudio = async (url: any, podcast: any) => {
 
 // step-2
 const getTranscript = async (url: string) => {
+  console.log("getting transcript....")
   const currentVideoId = url.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/)?.[1] ?? null;
   const options = {
     method: 'GET',
@@ -186,6 +187,7 @@ const anthropic = new Anthropic({
   apiKey: ANTHROPIC_API_KEY || '',
 });
 const generateScript = async (text: string, hosts: any[]) => {
+  console.log('Generating script.....')
   try {
     const hostNames = hosts.map((host) => host.name);
 
@@ -205,7 +207,7 @@ const generateScript = async (text: string, hosts: any[]) => {
 
     return generatedScript
   } catch (err: any) {
-    console.error(err.message, "from generageScript function..")
+    console.error(err, "from generateScript function..")
     throw err.message
   }
 };

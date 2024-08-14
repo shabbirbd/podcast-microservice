@@ -152,6 +152,7 @@ const extractAndSaveAudio = (url, podcast) => __awaiter(void 0, void 0, void 0, 
 // step-2
 const getTranscript = (url) => __awaiter(void 0, void 0, void 0, function* () {
     var _a, _b;
+    console.log("getting transcript....");
     const currentVideoId = (_b = (_a = url.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/)) === null || _a === void 0 ? void 0 : _a[1]) !== null && _b !== void 0 ? _b : null;
     const options = {
         method: 'GET',
@@ -187,6 +188,7 @@ const anthropic = new sdk_1.default({
     apiKey: ANTHROPIC_API_KEY || '',
 });
 const generateScript = (text, hosts) => __awaiter(void 0, void 0, void 0, function* () {
+    console.log('Generating script.....');
     try {
         const hostNames = hosts.map((host) => host.name);
         const buildPrompt = `Your are expert in generating podcast script. Now you have to generate a podcast string based on this transcript below: \n\n${text}. \nUse the content idea from the given transcript to generate the script. \n\nPlease make a perfect podcast script whith these hosts ${hostNames.join(", ")}. Please put "@@@HostName:" in start of each speech. Make it around 20 - 25 minutes podcast script. Please don't put any unnecessary word, sentence, [music] or emphasis except the script of the podcast. Please make each speech as long as possible.`;
@@ -202,7 +204,7 @@ const generateScript = (text, hosts) => __awaiter(void 0, void 0, void 0, functi
         return generatedScript;
     }
     catch (err) {
-        console.error(err.message, "from generageScript function..");
+        console.error(err, "from generateScript function..");
         throw err.message;
     }
 });
