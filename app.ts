@@ -328,7 +328,7 @@ app.post('/createPodcast', async (req, res) => {
     // Step 5: Update the podcast
     const newpodcast = {
       ...currentPodcast,
-
+      content: [...voiceResults],
       active: true
     };
     console.log(newpodcast, "new podcast.....")
