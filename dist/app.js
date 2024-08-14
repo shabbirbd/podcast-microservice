@@ -323,7 +323,7 @@ app.post('/createPodcast', (req, res) => __awaiter(void 0, void 0, void 0, funct
         res.status(200).json({ voiceResults });
     }
     catch (error) {
-        console.error('Error processing request:', error.message);
+        console.error('Error processing request:', error);
         res.status(500).json({ error: 'Failed to process request', details: error.message });
     }
 }));

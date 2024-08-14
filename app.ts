@@ -336,7 +336,7 @@ app.post('/createPodcast', async (req, res) => {
     res.status(200).json({voiceResults});
 
   } catch (error: any) {
-    console.error('Error processing request:', error.message);
+    console.error('Error processing request:', error);
     res.status(500).json({ error: 'Failed to process request', details: error.message });
   }
 });
