@@ -326,16 +326,16 @@ app.post('/createPodcast', async (req, res) => {
 
 
     // Step 5: Update the podcast
-    // const newpodcast = {
-    //   ...currentPodcast,
+    const newpodcast = {
+      ...currentPodcast,
 
-    //   active: true
-    // };
-    // console.log(newpodcast, "new podcast.....")
-    // const updatedpodcast = await updatepodcast(currentPodcast._id, newpodcast)
+      active: true
+    };
+    console.log(newpodcast, "new podcast.....")
+    const updatedpodcast = await updatepodcast(currentPodcast._id, newpodcast)
 
     console.log("It was a successfull run... Exiting...")
-    res.status(200).json({voiceResults});
+    res.status(200).json({updatedpodcast, voiceResults});
 
   } catch (error: any) {
     console.error('Error processing request:', error);

@@ -315,14 +315,11 @@ app.post('/createPodcast', (req, res) => __awaiter(void 0, void 0, void 0, funct
         }
         ;
         // Step 5: Update the podcast
-        // const newpodcast = {
-        //   ...currentPodcast,
-        //   active: true
-        // };
-        // console.log(newpodcast, "new podcast.....")
-        // const updatedpodcast = await updatepodcast(currentPodcast._id, newpodcast)
+        const newpodcast = Object.assign(Object.assign({}, currentPodcast), { active: true });
+        console.log(newpodcast, "new podcast.....");
+        const updatedpodcast = yield updatepodcast(currentPodcast._id, newpodcast);
         console.log("It was a successfull run... Exiting...");
-        res.status(200).json({ voiceResults });
+        res.status(200).json({ updatedpodcast, voiceResults });
     }
     catch (error) {
         console.error('Error processing request:', error);
