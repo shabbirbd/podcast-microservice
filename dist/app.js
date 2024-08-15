@@ -285,7 +285,7 @@ app.post('/createPodcast', (req, res) => __awaiter(void 0, void 0, void 0, funct
         for (const host of hosts) {
             console.log(`Assigning voice to ${host.name}`);
             // const newVoiceId = await extractAndSaveAudio(host.voiceUrl, currentPodcast);
-            const newVoiceId = ["nPczCjzI2devNBz1zQrb", "LcfcDJNUP1GQjkzn1xUU", "jsCqWAovK2LkecY7zXl4", "FGY2WhTYpPnrIDTdsKH5"][Math.floor(Math.random() * 4)];
+            const newVoiceId = ["onwK4e9ZLuTAKqWW03F9", "onwK4e9ZLuTAKqWW03F9", "onwK4e9ZLuTAKqWW03F9", "onwK4e9ZLuTAKqWW03F9"][Math.floor(Math.random() * 4)];
             const hostWithVoiceId = Object.assign(Object.assign({}, host), { voiceId: newVoiceId });
             detailedHost = [...detailedHost, hostWithVoiceId];
         }
