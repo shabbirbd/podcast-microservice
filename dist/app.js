@@ -261,12 +261,13 @@ const getVoiceUrl = (text, voiceId) => __awaiter(void 0, void 0, void 0, functio
 });
 // step-5
 const updatepodcast = (podcastId, newpodcast) => __awaiter(void 0, void 0, void 0, function* () {
+    console.log("Updating podcast.....");
     const response = yield fetch('https://beta.vendor.com/api/podcasts', {
         method: "PUT",
         headers: {
             "Content-Type": "application/json"
         },
-        body: JSON.stringify({ podcastId: podcastId, newpodcast: newpodcast })
+        body: JSON.stringify({ podcastId: podcastId, newPodcast: newpodcast })
     });
     if (response.ok) {
         console.log("podcast updated successfully....");
@@ -298,7 +299,6 @@ app.post('/createPodcast', (req, res) => __awaiter(void 0, void 0, void 0, funct
         const generatedSrcipt = yield generateScript(transcript, hosts);
         const formatedScript = yield formateScript(generatedSrcipt);
         for (const script of formatedScript) {
-            console.log(`Filtering script....`);
             const index = formatedScript.indexOf(script);
             const isEven = index % 2 === 0;
             let result;
