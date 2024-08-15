@@ -191,7 +191,20 @@ const generateScript = async (text: string, hosts: any[]) => {
   try {
     const hostNames = hosts.map((host) => host.name);
 
-    const buildPrompt = `Your are expert in generating podcast script. Now you have to generate a podcast string based on this transcript below: \n\n${text}. \nUse the content idea from the given transcript to generate the script. \n\nPlease make a perfect podcast script whith these hosts ${hostNames.join(", ")}. Please put "@@@HostName:" in start of each speech. Make it around 20 - 25 minutes podcast script. Please don't put any unnecessary word, sentence, [music] or emphasis except the script of the podcast. Please make each speech as long as possible.`
+    const buildPrompt = `Your are expert in generating podcast script. Now you have to generate a podcast string based on this transcript below: \n\n${text}. \nUse the content idea from the given transcript to generate the script. \n\nPlease make a perfect podcast script whith these hosts ${hostNames.join(", ")}. Please put "@@@HostName:" in start of each speech. Make it around 20 - 25 minutes podcast script. Please don't put any unnecessary word, sentence, [music] or emphasis except the script of the podcast. Please make each speech as long as possible. We are going to generate voice from the script, So write the script as close as human talks. Write it in a way so that the result of the TTS sounds realistic. Not robotic. I am giving you some example to make the speeches more humanly. \n\n
+    \nVary Sentence Length: Mix short and long sentences to mimic natural speech patterns. Longer sentences should have appropriate pauses, while shorter ones can create impact or emphasize a point.
+    \nUse Ellipses for Pauses: An ellipsis (…) can indicate a pause or a trailing off in thought, which can add a conversational tone.
+    \nParentheses for Asides: Use parentheses to insert asides or extra information, which can make the voice sound more reflective or thoughtful.
+    \nColons and Semicolons: These can help break up complex sentences, creating more natural pauses that prevent the voice from sounding too mechanical.
+    \nQuotation Marks: Use these for direct speech or to emphasize certain words or phrases, which can make the voice sound more engaging.
+    \nVary Punctuation: Combining different punctuation marks (e.g., ?!) can convey stronger emotions like surprise or excitement, adding more expressiveness to the voice.
+    \nAdd Exclamations or Interjections: Words like “Oh,” “Wow,” or “Well,” can make the voice sound more dynamic and natural.
+    \nEmphasize Key Words: You can italicize or bold key words in the text, which can instruct the AI to place more emphasis on them, simulating how humans naturally stress important words.
+    \nBreaking Sentences: If a sentence has multiple ideas, consider breaking it into smaller, more digestible parts. This will make the speech pattern more fluid and easier to follow.
+    \nUse Dashes for Interruptions: Dashes (—) can indicate a sudden break or change in thought, mimicking how people often interrupt themselves mid-sentence.
+    \nAdd Contextual Tags: Include stage directions or notes like “[pause]” or “[emphasize]” in the text to guide the AI on how to deliver specific parts of the speech.
+    \nAdjust for Tone: Depending on the context, you might want to soften or harden certain phrases by tweaking the punctuation or word choice to better match the intended emotional tone.
+    `
 
     const messages: any = [{ role: "user", content: buildPrompt }]
 
