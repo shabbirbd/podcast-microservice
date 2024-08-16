@@ -173,7 +173,7 @@ const getTranscript = async (url: string) => {
 const generateTopic = async (text: string)=>{
   try {
 
-    const buildPrompt = `I am giving you a transcript. You need to analyze the transcript and generate the title of the transcript. The title must be within 5 words. Only respond with the generated topic. Must not put any single word without the topic in your response. Respond with only the topic. Do not respond with any greeting message or confirmation message except the topic. \nHere is the transcript: ${text}.`
+    const buildPrompt = `I am giving you a transcript. You need to analyze the transcript and generate the title of the transcript. The title must be within 5 words. Only respond with the generated topic. Must not put any single word without the topic in your response. Respond with only the topic. Do not respond with any greeting message or confirmation message except the topic. Must put "@@@" before the topic. \nHere is the transcript: ${text}.`
 
     const messages: any = [{ role: "user", content: buildPrompt }]
 
@@ -185,9 +185,17 @@ const generateTopic = async (text: string)=>{
     });
 
     const content: any = response.content[0];
-    const generatedScript = content.text;
+    const generatedTopic = content.text;
+    let formatedTopic;
+    const segments: string[] = generatedTopic.split('@@@');
+    if (segments.length >= 2) {
+      // Return the trimmed second part (index 1)
+       formatedTopic = segments[1].trim();
+    } else {
+      formatedTopic = segments[0].trim();
+    }
 
-    return generatedScript
+    return formatedTopic
   } catch (err: any) {
     console.error(err, "from generateScript function..")
     throw err.message
@@ -217,7 +225,7 @@ const generateScript = async (text: string, hosts: any[], topic: string) => {
   try {
     const hostNames = hosts.map((host) => host.name);
 
-    const buildPrompt = `Your are expert in generating podcast script. Now you have to generate a copmpete podcast script based on this transcript below: \n\nThis is the transcript: \n${text}. \nThis is the topic of the podcast: ${topic}. \nPut the similar context of the transcript in the speeches of podcast script. \n \n\nMake a perfect podcast script whith these hosts ${hostNames.join(", ")}. Please put "@@@<The host of the speech>:" in start of each speech. Make the script as long as it should take 30/40 minutes to read. Don't put any unnecessary word, sentence, [music] or emphasis except the script of the podcast. Please make each speech as long as possible. Write the script as close as human talks. Write it in a way so that the result of the TTS of your generated podcast sounds realistic. Not robotic. I am giving you some example to make the speeches more humanly. \n\n
+    const buildPrompt = `Your are expert in generating podcast script. Now you have to generate a copmpete podcast script based on this transcript below: \n\nThis is the transcript: \n${text}. \nThis is the topic of the podcast: ${topic}. \nPut the similar context of the transcript in the speeches of podcast script. \n \n\nMake a perfect podcast script whith these hosts ${hostNames.join(", ")}. Do not include any other hosts except those. Please put "@@@<The host of the speech>:" in start of each speech. Make the script as long as it should take 30/40 minutes to read. Don't put any unnecessary word, sentence, [music] or emphasis except the script of the podcast. Please make each speech as long as possible. Write the script as close as human talks. Write it in a way so that the result of the TTS of your generated podcast sounds realistic. Not robotic. I am giving you some example to make the speeches more humanly. \n\n
     \nVary Sentence Length: Mix short and long sentences to mimic natural speech patterns. Longer sentences should have appropriate pauses, while shorter ones can create impact or emphasize a point.
     \nUse Ellipses for Pauses: An ellipsis (…) can indicate a pause or a trailing off in thought, which can add a conversational tone.
     \nParentheses for Asides: Use parentheses to insert asides or extra information, which can make the voice sound more reflective or thoughtful.
@@ -342,6 +350,7 @@ app.post('/createPodcast', async (req, res) => {
     console.log( "script generated......")
     const formatedScript = await formateScript(generatedSrcipt);
     console.log( "script formated......")
+
     for(const script of formatedScript){
       const index = formatedScript.indexOf(script);
       const isEven = index % 2 === 0;
