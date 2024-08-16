@@ -35,6 +35,9 @@ aws_sdk_1.default.config.update({
     secretAccessKey: AWS_SECRET_ACCESS_KEY,
     region: AWS_REGION
 });
+const anthropic = new sdk_1.default({
+    apiKey: ANTHROPIC_API_KEY || '',
+});
 const s3 = new aws_sdk_1.default.S3();
 const app = (0, express_1.default)();
 app.use(express_1.default.json());
@@ -170,6 +173,26 @@ const getTranscript = (url) => __awaiter(void 0, void 0, void 0, function* () {
     const fullTexts = data.transcriptionAsText;
     return fullTexts;
 });
+// generate topic 
+const generateTopic = (text) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const buildPrompt = `I am giving you a transcript. You need to analyze the transcript and generate the title of the transcript. The title must be within 5 words. Only respond with the generated topic. Must not put any single word without the topic in your response. Respond with only the topic. Do not respond with any greeting message or confirmation message except the topic. \nHere is the transcript: ${text}.`;
+        const messages = [{ role: "user", content: buildPrompt }];
+        const response = yield anthropic.messages.create({
+            messages: messages,
+            model: "claude-3-sonnet-20240229",
+            max_tokens: 4096,
+            stream: false,
+        });
+        const content = response.content[0];
+        const generatedScript = content.text;
+        return generatedScript;
+    }
+    catch (err) {
+        console.error(err, "from generateScript function..");
+        throw err.message;
+    }
+});
 // sub-step-3
 const formateScript = (script) => __awaiter(void 0, void 0, void 0, function* () {
     // Split the transcript into segments
@@ -184,14 +207,11 @@ const formateScript = (script) => __awaiter(void 0, void 0, void 0, function* ()
     return result.filter(res => res !== undefined && res.length > 0);
 });
 // step-3
-const anthropic = new sdk_1.default({
-    apiKey: ANTHROPIC_API_KEY || '',
-});
-const generateScript = (text, hosts) => __awaiter(void 0, void 0, void 0, function* () {
+const generateScript = (text, hosts, topic) => __awaiter(void 0, void 0, void 0, function* () {
     console.log('Generating script.....');
     try {
         const hostNames = hosts.map((host) => host.name);
-        const buildPrompt = `Your are expert in generating podcast script. Now you have to generate a podcast string based on this transcript below: \n\n${text}. \nUse the content idea from the given transcript to generate the script. \n\nPlease make a perfect podcast script whith these hosts ${hostNames.join(", ")}. Please put "@@@HostName:" in start of each speech. Make it around 20 - 25 minutes podcast script. Please don't put any unnecessary word, sentence, [music] or emphasis except the script of the podcast. Please make each speech as long as possible. We are going to generate voice from the script, So write the script as close as human talks. Write it in a way so that the result of the TTS sounds realistic. Not robotic. I am giving you some example to make the speeches more humanly. \n\n
+        const buildPrompt = `Your are expert in generating podcast script. Now you have to generate a copmpete podcast script based on this transcript below: \n\nThis is the transcript: \n${text}. \nThis is the topic of the podcast: ${topic}. \nPut the similar context of the transcript in the speeches of podcast script. \n \n\nMake a perfect podcast script whith these hosts ${hostNames.join(", ")}. Please put "@@@<The host of the speech>:" in start of each speech. Make the script as long as it should take 30/40 minutes to read. Don't put any unnecessary word, sentence, [music] or emphasis except the script of the podcast. Please make each speech as long as possible. Write the script as close as human talks. Write it in a way so that the result of the TTS of your generated podcast sounds realistic. Not robotic. I am giving you some example to make the speeches more humanly. \n\n
     \nVary Sentence Length: Mix short and long sentences to mimic natural speech patterns. Longer sentences should have appropriate pauses, while shorter ones can create impact or emphasize a point.
     \nUse Ellipses for Pauses: An ellipsis (…) can indicate a pause or a trailing off in thought, which can add a conversational tone.
     \nParentheses for Asides: Use parentheses to insert asides or extra information, which can make the voice sound more reflective or thoughtful.
@@ -202,7 +222,6 @@ const generateScript = (text, hosts) => __awaiter(void 0, void 0, void 0, functi
     \nEmphasize Key Words: You can italicize or bold key words in the text, which can instruct the AI to place more emphasis on them, simulating how humans naturally stress important words.
     \nBreaking Sentences: If a sentence has multiple ideas, consider breaking it into smaller, more digestible parts. This will make the speech pattern more fluid and easier to follow.
     \nUse Dashes for Interruptions: Dashes (—) can indicate a sudden break or change in thought, mimicking how people often interrupt themselves mid-sentence.
-    \nAdd Contextual Tags: Include stage directions or notes like “[pause]” or “[emphasize]” in the text to guide the AI on how to deliver specific parts of the speech.
     \nAdjust for Tone: Depending on the context, you might want to soften or harden certain phrases by tweaking the punctuation or word choice to better match the intended emotional tone.
     `;
         const messages = [{ role: "user", content: buildPrompt }];
@@ -281,6 +300,7 @@ app.post('/createPodcast', (req, res) => __awaiter(void 0, void 0, void 0, funct
         console.log(currentPodcast, "Starting the process....");
         const hosts = [...currentPodcast.hosts];
         // step 1 - clone voice with hosts info
+        console.log("Cloning voiec...");
         let detailedHost = [];
         for (const host of hosts) {
             console.log(`Assigning voice to ${host.name}`);
@@ -290,14 +310,20 @@ app.post('/createPodcast', (req, res) => __awaiter(void 0, void 0, void 0, funct
             detailedHost = [...detailedHost, hostWithVoiceId];
         }
         ;
+        console.log("Voice clone done....");
         // step 2 - get the transcript
         const videoUrl = currentPodcast.videoUrl;
         const transcript = yield getTranscript(videoUrl);
-        // console.log(transcript, "transcript..........")
+        console.log("transcript generated...........");
+        console.log("Generating topic");
+        const topic = yield generateTopic(transcript);
+        console.log(topic, "Topic generated.....");
         // step 3 - generate script
         let scripts = [];
-        const generatedSrcipt = yield generateScript(transcript, hosts);
+        const generatedSrcipt = yield generateScript(transcript, hosts, topic);
+        console.log("script generated......");
         const formatedScript = yield formateScript(generatedSrcipt);
+        console.log("script formated......");
         for (const script of formatedScript) {
             const index = formatedScript.indexOf(script);
             const isEven = index % 2 === 0;
@@ -328,7 +354,7 @@ app.post('/createPodcast', (req, res) => __awaiter(void 0, void 0, void 0, funct
         }
         ;
         // Step 5: Update the podcast
-        const newpodcast = Object.assign(Object.assign({}, currentPodcast), { content: [...voiceResults], active: true });
+        const newpodcast = Object.assign(Object.assign({}, currentPodcast), { topic: topic, content: [...voiceResults], active: true });
         console.log(newpodcast, "new podcast.....");
         const updatedpodcast = yield updatepodcast(currentPodcast._id, newpodcast);
         console.log("It was a successfull run... Exiting...");
