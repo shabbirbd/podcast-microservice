@@ -187,6 +187,7 @@ const getVoiceUrl = async (text: string, voiceId: string) => {
         ACL: 'public-read'
       };
       const result = await s3.upload(params).promise();
+      console.log("Uploaded to s3.....");
       return result.Location
     } else {
       console.error('Audio fetch failed:', response.status, response.statusText);
@@ -236,8 +237,8 @@ app.post('/createPodcast', async (req, res) => {
 
 
     // Step 2: generate voice and save 
-    let newContent : any = [...currentPodcast.content];
-    for(const script of newContent){
+    let newContent : any = [];
+    for(const script of currentPodcast.content){
       const index = newContent.indexOf(script);
       const isEven = index % 2 === 0;
       console.log(`Generating voice for: ${index}`);

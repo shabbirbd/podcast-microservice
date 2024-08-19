@@ -190,6 +190,7 @@ const getVoiceUrl = (text, voiceId) => __awaiter(void 0, void 0, void 0, functio
                 ACL: 'public-read'
             };
             const result = yield s3.upload(params).promise();
+            console.log("Uploaded to s3.....");
             return result.Location;
         }
         else {
@@ -235,8 +236,8 @@ app.post('/createPodcast', (req, res) => __awaiter(void 0, void 0, void 0, funct
         ;
         console.log("Voice clone done....");
         // Step 2: generate voice and save 
-        let newContent = [...currentPodcast.content];
-        for (const script of newContent) {
+        let newContent = [];
+        for (const script of currentPodcast.content) {
             const index = newContent.indexOf(script);
             const isEven = index % 2 === 0;
             console.log(`Generating voice for: ${index}`);
