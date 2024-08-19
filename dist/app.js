@@ -247,7 +247,7 @@ app.post('/createPodcast', (req, res) => __awaiter(void 0, void 0, void 0, funct
             else {
                 voiceId = detailedHost[1].voiceId;
             }
-            const filteredScript = script.text.replace(/[^\w\s.,'?!]/g, '');
+            const filteredScript = script.subtitle.replace(/[^\w\s.,'?!]/g, '');
             const voiceUrl = yield getVoiceUrl(filteredScript, voiceId);
             const newResult = Object.assign(Object.assign({}, script), { voiceUrl: voiceUrl });
             newContent = [...newContent, newResult];

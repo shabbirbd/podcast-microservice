@@ -249,7 +249,7 @@ app.post('/createPodcast', async (req, res) => {
         voiceId = detailedHost[1].voiceId;
       }
 
-      const filteredScript = script.text.replace(/[^\w\s.,'?!]/g, '');
+      const filteredScript = script.subtitle.replace(/[^\w\s.,'?!]/g, '');
       const voiceUrl = await getVoiceUrl(filteredScript, voiceId);
       
       const newResult = {...script, voiceUrl: voiceUrl};
