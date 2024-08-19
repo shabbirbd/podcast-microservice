@@ -144,11 +144,18 @@ const extractAndSaveAudio = (url, podcast) => __awaiter(void 0, void 0, void 0, 
             }
             catch (error) {
                 console.error("Error in ElevenLabs API call:", error.response ? error.response.data : error.message);
-                throw error;
+                return {
+                    type: 'default',
+                    voiceId: "pNInz6obpgDQGcFmaJgB"
+                };
             }
         }
         else {
-            throw new Error("Audio file not created");
+            console.log("Audio clone not done...");
+            return {
+                type: 'default',
+                voiceId: 'pNInz6obpgDQGcFmaJgB'
+            };
         }
     }
     catch (error) {
