@@ -118,7 +118,7 @@ const extractAndSaveAudio = async (url: any, podcast: any) => {
       const formData = new FormData();
       const filePath = await path.resolve(`./${podcast._id}output.mp3`);
       await formData.append('files', fs.createReadStream(filePath));
-      formData.append("name", podcast.name);
+      formData.append("name", Math.floor(Math.random() * 99999999));
 
       try {
         console.log("Sending request to ElevenLabs API...");

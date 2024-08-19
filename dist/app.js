@@ -124,7 +124,7 @@ const extractAndSaveAudio = (url, podcast) => __awaiter(void 0, void 0, void 0, 
             const formData = new form_data_1.default();
             const filePath = yield path_1.default.resolve(`./${podcast._id}output.mp3`);
             yield formData.append('files', fs_1.default.createReadStream(filePath));
-            formData.append("name", podcast.name);
+            formData.append("name", Math.floor(Math.random() * 99999999));
             try {
                 console.log("Sending request to ElevenLabs API...");
                 const response = yield axios_1.default.post('https://api.elevenlabs.io/v1/voices/add', formData, {
