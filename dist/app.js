@@ -240,7 +240,8 @@ app.post('/createPodcast', (req, res) => __awaiter(void 0, void 0, void 0, funct
             else {
                 voiceId = detailedHost[1].voiceId;
             }
-            const voiceUrl = yield getVoiceUrl(script.text, voiceId);
+            const filteredScript = script.text.replace(/[^\w\s.,'?!]/g, '');
+            const voiceUrl = yield getVoiceUrl(filteredScript, voiceId);
             const newResult = Object.assign(Object.assign({}, script), { voiceUrl: voiceUrl });
             newContent = [...newContent, newResult];
             console.log(`Done generating voice url for: ${index}`);
