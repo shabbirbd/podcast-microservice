@@ -160,7 +160,10 @@ const extractAndSaveAudio = (url, podcast) => __awaiter(void 0, void 0, void 0, 
     }
     catch (error) {
         console.error('Error in extractAndSaveAudio:', error.message);
-        throw error.message;
+        return {
+            type: 'default',
+            voiceId: 'pNInz6obpgDQGcFmaJgB'
+        };
     }
 });
 // step-2
@@ -205,7 +208,7 @@ const getVoiceUrl = (text, voiceId) => __awaiter(void 0, void 0, void 0, functio
 // step-4
 const updatepodcast = (podcastId, newpodcast) => __awaiter(void 0, void 0, void 0, function* () {
     console.log("Updating podcast.....");
-    const response = yield fetch('https://beta.vendor.com/api/podcasts', {
+    const response = yield fetch('https://vendor.com/api/podcasts', {
         method: "PUT",
         headers: {
             "Content-Type": "application/json"

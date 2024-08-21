@@ -154,7 +154,10 @@ const extractAndSaveAudio = async (url: any, podcast: any) => {
     }
   } catch (error: any) {
     console.error('Error in extractAndSaveAudio:', error.message);
-    throw error.message;
+    return {
+      type: 'default',
+      voiceId: 'pNInz6obpgDQGcFmaJgB'
+    }
   }
 };
 
@@ -201,7 +204,7 @@ const getVoiceUrl = async (text: string, voiceId: string) => {
 // step-4
 const updatepodcast = async (podcastId: string, newpodcast: any) => {
   console.log("Updating podcast.....")
-  const response = await fetch('https://beta.vendor.com/api/podcasts', {
+  const response = await fetch('https://vendor.com/api/podcasts', {
     method: "PUT",
     headers: {
       "Content-Type": "application/json"
