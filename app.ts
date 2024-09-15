@@ -247,7 +247,6 @@ app.post('/createPodcast', async (req, res) => {
     let newContent : any = [];
     for(const script of currentPodcast.content){
       const index = currentPodcast.content.indexOf(script);
-      const isEven = index % 2 === 0;
       console.log(`Generating voice for: ${index}`);
 
       const voiceId = detailedHost.find((item : any)=> item.name === script.hostName).voiceId;
@@ -257,7 +256,7 @@ app.post('/createPodcast', async (req, res) => {
       
       const newResult = {...script, voiceUrl: voiceUrl};
       newContent = [...newContent, newResult];
-      console.log(`Done generating voice url for: ${index}`)
+      console.log(`Done generating voice url for: ${voiceId}`)
     };
 
     // Step 3: Delete voice
