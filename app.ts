@@ -258,14 +258,15 @@ app.post('/createPodcast', async (req, res) => {
       console.log(`Done generating voice url for: ${voiceId}`)
     };
 
+    console.log("deleting all voice...")
     // Step 3: Delete voice
-    console.log("Deleting voice....")
     for(const host of detailedHost){
       const type = host.vocieType;
+      console.log(type, "type....")
       const voiceId = host.voiceId;
       if(type === "cloned"){
-        const encodedVoiceId = encodeURIComponent(voiceId)
-        const deleteVoice = await axios.delete(`https://api.elevenlabs.io/v1/voices/${encodedVoiceId}`, {
+        console.log("Deleting voice....", voiceId, host.name)
+        const deleteVoice = await axios.delete(`https://api.elevenlabs.io/v1/voices/${voiceId}`, {
           headers: {
             'xi-api-key': ELEVENLAB_KEY
           }
