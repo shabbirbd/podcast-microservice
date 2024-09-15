@@ -132,7 +132,11 @@ const extractAndSaveAudio = async (url: any, podcast: any) => {
         const voiceId = response.data.voice_id;
         console.log("Voice ID:", voiceId);
         fs.unlink(output, (unlinkErr) => {
-          if (unlinkErr) console.error('Error deleting file:', unlinkErr);
+          if (unlinkErr) {
+            console.error('Error deleting file:', unlinkErr)
+          } else {
+            console.log("Unlinked.....")
+          }
         });
         return {
           type: "cloned",
@@ -146,7 +150,7 @@ const extractAndSaveAudio = async (url: any, podcast: any) => {
         }
       }
     } else {
-       console.log("Audio clone not done...");
+       console.log("Audio clone not failed...");
        return {
         type: 'default',
         voiceId: 'pNInz6obpgDQGcFmaJgB'
