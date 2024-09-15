@@ -11,7 +11,7 @@ dotenv.config();
 
 
 
-const ELEVENLAB_KEY = "8339ed653a92fb25e0d1f1270121b055";
+const ELEVENLAB_KEY = "sk_a8c5fd86a68a757e9ee5e822c17654cae7df8336a9dbc61b";
 const AWS_ACCESS_KEY = process.env.AWS_ACCESS_KEY;
 const AWS_SECRET_ACCESS_KEY = process.env.AWS_SECRET_ACCESS_KEY;
 const AWS_REGION = "us-east-1";
@@ -249,13 +249,8 @@ app.post('/createPodcast', async (req, res) => {
       const index = currentPodcast.content.indexOf(script);
       const isEven = index % 2 === 0;
       console.log(`Generating voice for: ${index}`);
-      let voiceId;
 
-      if(isEven){
-        voiceId = detailedHost[0].voiceId;
-      } else {
-        voiceId = detailedHost[1].voiceId;
-      }
+      const voiceId = detailedHost.find((item : any)=> item.name === script.hostName).voiceId;
 
       const filteredScript = script.subtitle.replace(/[^\w\s.,'?!]/g, '');
       const voiceUrl = await getVoiceUrl(filteredScript, voiceId);
@@ -277,8 +272,9 @@ app.post('/createPodcast', async (req, res) => {
             'xi-api-key': ELEVENLAB_KEY
           }
         });
+        console.log(`Voice Deleted for: ${host.name} ${deleteVoice.status}`)
       }
-      console.log(`Voice Deleted for: ${host.name}`)
+
     };
     console.log("All voice deleted...")
 
