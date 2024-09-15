@@ -246,7 +246,7 @@ app.post('/createPodcast', async (req, res) => {
     // Step 2: generate voice and save 
     let newContent : any = [];
     for(const script of currentPodcast.content){
-      const index = currentPodcast.indexOf(script);
+      const index = currentPodcast.content.indexOf(script);
       const isEven = index % 2 === 0;
       console.log(`Generating voice for: ${index}`);
       let voiceId;
