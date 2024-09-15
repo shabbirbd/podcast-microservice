@@ -22,7 +22,7 @@ const axios_1 = __importDefault(require("axios"));
 const aws_sdk_1 = __importDefault(require("aws-sdk"));
 const uuid_1 = require("uuid");
 dotenv_1.default.config();
-const ELEVENLAB_KEY = "8339ed653a92fb25e0d1f1270121b055";
+const ELEVENLAB_KEY = "sk_a8c5fd86a68a757e9ee5e822c17654cae7df8336a9dbc61b";
 const AWS_ACCESS_KEY = process.env.AWS_ACCESS_KEY;
 const AWS_SECRET_ACCESS_KEY = process.env.AWS_SECRET_ACCESS_KEY;
 const AWS_REGION = "us-east-1";
@@ -134,8 +134,12 @@ const extractAndSaveAudio = (url, podcast) => __awaiter(void 0, void 0, void 0, 
                 const voiceId = response.data.voice_id;
                 console.log("Voice ID:", voiceId);
                 fs_1.default.unlink(output, (unlinkErr) => {
-                    if (unlinkErr)
+                    if (unlinkErr) {
                         console.error('Error deleting file:', unlinkErr);
+                    }
+                    else {
+                        console.log("Unlinked.....");
+                    }
                 });
                 return {
                     type: "cloned",
@@ -151,7 +155,7 @@ const extractAndSaveAudio = (url, podcast) => __awaiter(void 0, void 0, void 0, 
             }
         }
         else {
-            console.log("Audio clone not done...");
+            console.log("Audio clone not failed...");
             return {
                 type: 'default',
                 voiceId: 'pNInz6obpgDQGcFmaJgB'
@@ -237,25 +241,18 @@ app.post('/createPodcast', (req, res) => __awaiter(void 0, void 0, void 0, funct
             detailedHost = [...detailedHost, hostWithVoiceId];
         }
         ;
-        console.log("Voice clone done....");
+        console.log("Voice clone done....detailed host: ", detailedHost);
         // Step 2: generate voice and save 
         let newContent = [];
         for (const script of currentPodcast.content) {
-            const index = newContent.indexOf(script);
-            const isEven = index % 2 === 0;
+            const index = currentPodcast.content.indexOf(script);
             console.log(`Generating voice for: ${index}`);
-            let voiceId;
-            if (isEven) {
-                voiceId = detailedHost[0].voiceId;
-            }
-            else {
-                voiceId = detailedHost[1].voiceId;
-            }
+            const voiceId = detailedHost.find((item) => item.name === script.hostName).voiceId;
             const filteredScript = script.subtitle.replace(/[^\w\s.,'?!]/g, '');
             const voiceUrl = yield getVoiceUrl(filteredScript, voiceId);
             const newResult = Object.assign(Object.assign({}, script), { voiceUrl: voiceUrl });
             newContent = [...newContent, newResult];
-            console.log(`Done generating voice url for: ${index}`);
+            console.log(`Done generating voice url for: ${voiceId}`);
         }
         ;
         // Step 3: Delete voice
@@ -270,8 +267,8 @@ app.post('/createPodcast', (req, res) => __awaiter(void 0, void 0, void 0, funct
                         'xi-api-key': ELEVENLAB_KEY
                     }
                 });
+                console.log(`Voice Deleted for: ${host.name} ${deleteVoice.status}`);
             }
-            console.log(`Voice Deleted for: ${host.name}`);
         }
         ;
         console.log("All voice deleted...");
