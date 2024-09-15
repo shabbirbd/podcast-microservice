@@ -245,8 +245,7 @@ app.post('/createPodcast', (req, res) => __awaiter(void 0, void 0, void 0, funct
         // Step 2: generate voice and save 
         let newContent = [];
         for (const script of currentPodcast.content) {
-            const index = currentPodcast.content.indexOf(script);
-            console.log(`Generating voice for: ${index}`);
+            console.log(`Generating voice for: ${script.hostName}`);
             const voiceId = detailedHost.find((item) => item.name === script.hostName).voiceId;
             const filteredScript = script.subtitle.replace(/[^\w\s.,'?!]/g, '');
             const voiceUrl = yield getVoiceUrl(filteredScript, voiceId);
