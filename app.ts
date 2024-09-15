@@ -261,7 +261,7 @@ app.post('/createPodcast', async (req, res) => {
     console.log("deleting all voice...")
     // Step 3: Delete voice
     for(const host of detailedHost){
-      const type = host.vocieType;
+      const type = host.voiceType;
       console.log(type, "type....")
       const voiceId = host.voiceId;
       if(type === "cloned"){
