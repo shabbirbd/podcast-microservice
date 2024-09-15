@@ -240,13 +240,13 @@ app.post('/createPodcast', async (req, res) => {
       const hostWithVoiceId = { ...host, voiceId: newVoiceId, voiceType: voiceData.type};
       detailedHost = [...detailedHost, hostWithVoiceId]
     };
-    console.log("Voice clone done....")
+    console.log("Voice clone done....detailed host: ", detailedHost)
 
 
     // Step 2: generate voice and save 
     let newContent : any = [];
     for(const script of currentPodcast.content){
-      const index = newContent.indexOf(script);
+      const index = currentPodcast.indexOf(script);
       const isEven = index % 2 === 0;
       console.log(`Generating voice for: ${index}`);
       let voiceId;
