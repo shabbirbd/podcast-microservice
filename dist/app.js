@@ -20,8 +20,11 @@ const path_1 = __importDefault(require("path"));
 const fs_1 = __importDefault(require("fs"));
 const axios_1 = __importDefault(require("axios"));
 const aws_sdk_1 = __importDefault(require("aws-sdk"));
+const fluent_ffmpeg_1 = __importDefault(require("fluent-ffmpeg"));
 const uuid_1 = require("uuid");
+const os_1 = __importDefault(require("os"));
 dotenv_1.default.config();
+fluent_ffmpeg_1.default.setFfmpegPath('/opt/homebrew/bin/ffmpeg');
 const ELEVENLAB_KEY = "sk_a8c5fd86a68a757e9ee5e822c17654cae7df8336a9dbc61b";
 const AWS_ACCESS_KEY = process.env.AWS_ACCESS_KEY;
 const AWS_SECRET_ACCESS_KEY = process.env.AWS_SECRET_ACCESS_KEY;
@@ -209,6 +212,83 @@ const getVoiceUrl = (text, voiceId) => __awaiter(void 0, void 0, void 0, functio
         console.error('Error in getVoice:', error.message);
     }
 });
+const transcodeAudio = (url_1, ...args_1) => __awaiter(void 0, [url_1, ...args_1], void 0, function* (url, audioFormat = 'mp3') {
+    const outputFilePath = path_1.default.join(os_1.default.tmpdir(), `${(0, uuid_1.v4)()}.${audioFormat}`); // Use the specified audio format
+    return new Promise((resolve, reject) => {
+        (0, fluent_ffmpeg_1.default)(url)
+            .outputOptions('-acodec libmp3lame') // Use MP3 codec
+            .outputOptions('-b:a 192k') // Set audio bitrate
+            .outputOptions('-vn') // Disable video recording
+            .on('end', () => {
+            console.log(`Transcoded audio saved to ${outputFilePath}`);
+            resolve(outputFilePath);
+        })
+            .on('error', (err) => {
+            console.error('Error transcoding audio:', err);
+            reject(err);
+        })
+            .save(outputFilePath);
+    });
+});
+const mergeAudios = (urls) => __awaiter(void 0, void 0, void 0, function* () {
+    const tempFile = path_1.default.join(os_1.default.tmpdir(), `${(0, uuid_1.v4)()}.mp3`); // Changed to .mp3
+    const command = (0, fluent_ffmpeg_1.default)();
+    // Transcode each audio to a common format
+    const transcodedFiles = [];
+    for (const url of urls) {
+        const transcodedFile = yield transcodeAudio(url); // Updated to transcodeAudio
+        transcodedFiles.push(transcodedFile);
+        command.input(transcodedFile);
+    }
+    return new Promise((resolve, reject) => {
+        command
+            .on('start', (commandLine) => {
+            console.log('Spawned ffmpeg with command: ' + commandLine);
+        })
+            .on('error', (err) => {
+            console.error('FFmpeg error:', err);
+            reject(err);
+        })
+            .on('end', () => {
+            console.log('FFmpeg process completed');
+            // Unlink transcoded files after merging
+            transcodedFiles.forEach((file) => {
+                fs_1.default.unlink(file, (err) => {
+                    if (err) {
+                        console.error(`Error deleting file ${file}:`, err);
+                    }
+                    else {
+                        console.log(`Deleted transcoded file: ${file}`);
+                    }
+                });
+            });
+            resolve(tempFile);
+        })
+            .mergeToFile(tempFile, os_1.default.tmpdir());
+    });
+});
+const uploadToS3 = (filePath) => __awaiter(void 0, void 0, void 0, function* () {
+    console.log('uploading to s3......');
+    const fileContent = fs_1.default.readFileSync(filePath);
+    const params = {
+        Bucket: S3_BUCKET_NAME,
+        Key: `audios/${path_1.default.basename(filePath)}`,
+        Body: fileContent,
+        ContentType: 'audio/mpeg',
+        ACL: 'public-read'
+    };
+    const result = yield s3.upload(params).promise();
+    // Unlink the merged file after uploading
+    fs_1.default.unlink(filePath, (err) => {
+        if (err) {
+            console.error(`Error deleting merged file ${filePath}:`, err);
+        }
+        else {
+            console.log(`Deleted merged file: ${filePath}`);
+        }
+    });
+    return result.Location;
+});
 // step-4
 const updatepodcast = (podcastId, newpodcast) => __awaiter(void 0, void 0, void 0, function* () {
     console.log("Updating podcast.....");
@@ -272,12 +352,17 @@ app.post('/createPodcast', (req, res) => __awaiter(void 0, void 0, void 0, funct
         }
         ;
         console.log("All voice deleted...");
+        console.log('marging audio url...');
+        const audioUrls = newContent.map((item) => item.voiceUrl);
+        const filePath = yield mergeAudios(audioUrls);
+        const s3Url = yield uploadToS3(filePath);
+        console.log('marge complete......');
         // Step 4: Update the podcast
-        const newpodcast = Object.assign(Object.assign({}, currentPodcast), { content: [...newContent], active: true });
+        const newpodcast = Object.assign(Object.assign({}, currentPodcast), { content: [...newContent], audioUrl: s3Url, active: true });
         console.log("updating podcast...");
         const updatedpodcast = yield updatepodcast(currentPodcast._id, newpodcast);
         console.log("It was a successfull run... Exiting...");
-        res.status(200).json({ updatedpodcast, newContent });
+        res.status(200).json({ updatedpodcast });
     }
     catch (error) {
         console.error('Error processing request:', error);

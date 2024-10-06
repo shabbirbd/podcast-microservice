@@ -6,8 +6,14 @@ import path from 'path';
 import fs from 'fs';
 import axios from 'axios';
 import AWS from 'aws-sdk';
+import ffmpeg from 'fluent-ffmpeg';
 import { v4 as uuidv4 } from 'uuid';
+import os from 'os';
+
 dotenv.config();
+
+
+ffmpeg.setFfmpegPath('/opt/homebrew/bin/ffmpeg');
 
 
 
@@ -205,6 +211,92 @@ const getVoiceUrl = async (text: string, voiceId: string) => {
   }
 };
 
+const transcodeAudio = async (url: string, audioFormat: string = 'mp3'): Promise<string> => {
+  const outputFilePath = path.join(os.tmpdir(), `${uuidv4()}.${audioFormat}`); // Use the specified audio format
+  return new Promise((resolve, reject) => {
+    ffmpeg(url)
+      .outputOptions('-acodec libmp3lame') // Use MP3 codec
+      .outputOptions('-b:a 192k') // Set audio bitrate
+      .outputOptions('-vn') // Disable video recording
+      .on('end', () => {
+        console.log(`Transcoded audio saved to ${outputFilePath}`);
+        resolve(outputFilePath);
+      })
+      .on('error', (err) => {
+        console.error('Error transcoding audio:', err);
+        reject(err);
+      })
+      .save(outputFilePath);
+  });
+};
+
+
+const mergeAudios = async (urls: string[]): Promise<string> => {
+  const tempFile = path.join(os.tmpdir(), `${uuidv4()}.mp3`); // Changed to .mp3
+  const command = ffmpeg();
+
+  // Transcode each audio to a common format
+  const transcodedFiles: string[] = [];
+  for (const url of urls) {
+    const transcodedFile = await transcodeAudio(url); // Updated to transcodeAudio
+    transcodedFiles.push(transcodedFile);
+    command.input(transcodedFile);
+  }
+
+  return new Promise((resolve, reject) => {
+    command
+      .on('start', (commandLine) => {
+        console.log('Spawned ffmpeg with command: ' + commandLine);
+      })
+      .on('error', (err) => {
+        console.error('FFmpeg error:', err);
+        reject(err);
+      })
+      .on('end', () => {
+        console.log('FFmpeg process completed');
+        // Unlink transcoded files after merging
+        transcodedFiles.forEach((file) => {
+          fs.unlink(file, (err) => {
+            if (err) {
+              console.error(`Error deleting file ${file}:`, err);
+            } else {
+              console.log(`Deleted transcoded file: ${file}`);
+            }
+          });
+        });
+        resolve(tempFile);
+      })
+      .mergeToFile(tempFile, os.tmpdir());
+  });
+};
+
+
+const uploadToS3 = async (filePath: any): Promise<string> => {
+  console.log('uploading to s3......')
+  const fileContent = fs.readFileSync(filePath);
+  const params = {
+    Bucket: S3_BUCKET_NAME,
+    Key: `audios/${path.basename(filePath)}`,
+    Body: fileContent,
+    ContentType: 'audio/mpeg',
+    ACL: 'public-read'
+  };
+
+
+  const result = await s3.upload(params).promise();
+
+   // Unlink the merged file after uploading
+   fs.unlink(filePath, (err) => {
+    if (err) {
+      console.error(`Error deleting merged file ${filePath}:`, err);
+    } else {
+      console.log(`Deleted merged file: ${filePath}`);
+    }
+  });
+  
+  return result.Location;
+};
+
 // step-4
 const updatepodcast = async (podcastId: string, newpodcast: any) => {
   console.log("Updating podcast.....")
@@ -273,22 +365,30 @@ app.post('/createPodcast', async (req, res) => {
         });
         console.log(`Voice Deleted for: ${host.name} ${deleteVoice.status}`)
       }
-
     };
     console.log("All voice deleted...")
+
+    console.log('marging audio url...')
+    const audioUrls = newContent.map((item : any)=> item.voiceUrl);
+    const filePath = await mergeAudios(audioUrls);
+    const s3Url = await uploadToS3(filePath)
+    console.log('marge complete......')
+
+
 
 
     // Step 4: Update the podcast
     const newpodcast = {
       ...currentPodcast,
       content: [...newContent],
+      audioUrl: s3Url,
       active: true
     };
     console.log("updating podcast...")
     const updatedpodcast = await updatepodcast(currentPodcast._id, newpodcast)
 
     console.log("It was a successfull run... Exiting...")
-    res.status(200).json({updatedpodcast, newContent});
+    res.status(200).json({updatedpodcast});
 
   } catch (error: any) {
     console.error('Error processing request:', error);
